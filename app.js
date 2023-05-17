@@ -1,6 +1,6 @@
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
-const audio = new Audio("./samples/sample0.mp3");
+const audio = await new Audio("./samples/sample0.mp3");
 const canvas = document.getElementById("canvas")
 const canvasCtx = canvas.getContext('2d');
 const playButton = document.getElementById("play");
@@ -8,13 +8,14 @@ const WIDTH = 300;
 const HEIGHT = 150;
 
 playButton.addEventListener("click", () => {
-    if (audio.paused) {
-        playButton.innerText = 'pause'
-        audio.play()
-    } else {
-        playButton.innerText = 'play'
-        audio.pause();
-    }
+        if (audio.paused) {
+            audioCtx.resume();
+            playButton.innerText = 'pause'
+            audio.play()
+        } else {
+            playButton.innerText = 'play'
+            audio.pause();
+        }
 });
 
 const source = audioCtx.createMediaElementSource(audio);
