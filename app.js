@@ -23,6 +23,7 @@ analyser.connect(audioCtx.destination);
 
 analyser.fftSize = 256;
 const bufferLength = analyser.frequencyBinCount;
+console.log(bufferLength)
 const dataArray = new Uint8Array(bufferLength);
 
 // draw an oscilloscope of the current audio source
