@@ -1,3 +1,31 @@
-body {
-  background: rgb(37, 34, 34);
+
+*
+{
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body
+{
+    overflow: hidden;
+}
+
+.webgl
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+}
+
+#hotbar
+{
+  text-align: center;
+  background-color: rgb(24, 28, 24);
+}
+
+#play
+{
+  font-family: fantasy;
 }
