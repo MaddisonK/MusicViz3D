@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import song from "/sample0.mp3";
 
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
-const audio = new Audio("/sample0.mp3");
+const audio = new Audio(song);
 const canvas = document.getElementById("canvas")
 const playButton = document.getElementById("play");
 
