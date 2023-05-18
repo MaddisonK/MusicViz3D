@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from './node_modules/three';
+import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js'
 
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
@@ -54,7 +54,7 @@ let cubeSpacing = .1;
 let minHeight = .1;
 let cubesArr = new Array(bufferLength * 2);
 const cube = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({ color: 0x00aa00 })
+const material = new THREE.MeshBasicMaterial({ color: 0x00aa00})
 for (let i = 0; i < bufferLength; i++) {
   const mesh = new THREE.Mesh(cube, material)
   mesh.scale.set(cubeSize, minHeight, cubeSize)
