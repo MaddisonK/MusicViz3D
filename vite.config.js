@@ -1,3 +1,3 @@
 export default {
-    // config options
+    base: "/MusicViz3D/"
 }
