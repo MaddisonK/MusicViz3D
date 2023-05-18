@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
-const audio = await new Audio("./samples/sample0.mp3");
+const audio = new Audio("./samples/sample0.mp3");
 const canvas = document.getElementById("canvas")
 const playButton = document.getElementById("play");
 
