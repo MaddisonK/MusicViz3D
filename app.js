@@ -1,5 +1,5 @@
-import * as THREE from './node_modules/three';
-import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js'
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
