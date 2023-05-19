@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import song from "/sample0.mp3";
 import GUI from 'lil-gui';
 
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
-let audio = new Audio(song);
+const audio = document.getElementById("audio");
+audio.src = "/sample0.mp3";
 
 let source = audioCtx.createMediaElementSource(audio);
 source.connect(analyser);
@@ -158,11 +158,9 @@ function deleteBars()
 }
 
 function restartAudioAnalyzer() {
-  source.disconnect()
-  analyser.disconnect()
-  source = audioCtx.createMediaElementSource(audio);
   source.connect(analyser);
   analyser.connect(audioCtx.destination);
+  audioCtx.resume();
 }
 
 window.addEventListener('resize', () =>
@@ -189,7 +187,7 @@ playButton.addEventListener("click", () => {
         playPromise.then(function() {
         // Automatic playback started!
         }).catch(function(error) {
-        console.log('playback failed')
+        console.log(error)
         });
       }
   } else {
@@ -200,8 +198,7 @@ playButton.addEventListener("click", () => {
 
 nextButton.addEventListener("click", () => {
   playButton.click();
-  audio = new Audio("/sample1.mp3");
-  playButton.click();
+  audio.src = '/sample1.mp3'
   restartAudioAnalyzer();
 });
 
