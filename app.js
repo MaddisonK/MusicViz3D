@@ -214,7 +214,7 @@ playButton.addEventListener("click", () => {
   if (audio.paused) {
       audioCtx.resume();
       playButton.innerText = 'pause'
-      playPromise = audio.play();
+      let playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.then(function() {
         // Automatic playback started!
