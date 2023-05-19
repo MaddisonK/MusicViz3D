@@ -1,12 +1,18 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import song from "/sample0.mp3";
+import GUI from 'lil-gui';
 
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
 const audio = new Audio(song);
 const canvas = document.getElementById("canvas")
 const playButton = document.getElementById("play");
+
+/**
+ * Debug
+ */
+const gui = new GUI();
 
 /**
  * Sizes
@@ -23,14 +29,21 @@ const scene = new THREE.Scene()
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(60, sizes.width / sizes.height, 0.1, 100)
-camera.position.z = 10
-camera.position.y = 10
-scene.add(camera)
+const camera = new THREE.PerspectiveCamera(70, sizes.width / sizes.height, 0.1, 100)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
+
+scene.add(camera)
+camera.position.z = 5
+camera.position.y = 9
+camera.rotation.set(-1, 0, 0)
+
+// debug camera height
+gui.add(camera.position, "y").min(-20).max(20).step(1).name("camera height")
+gui.add(camera.rotation, "x").max(0).min(Math.PI / -2).hide()
+
 
 /**
  * Renderer
@@ -45,21 +58,34 @@ const source = audioCtx.createMediaElementSource(audio);
 source.connect(analyser);
 analyser.connect(audioCtx.destination);
 
-analyser.fftSize = 256;
+analyser.fftSize = 128;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
 
 // set up scene
-let cubeSize = .1;
+let cubeSize = .2;
+const sizeDecreaseFactor = .95; // change to using log base
 let cubeSpacing = .1;
 let minHeight = .1;
 let cubesArr = new Array(bufferLength * 2);
+let xPos = (cubeSize + cubeSpacing) * .5;
 const cube = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({ color: 0x00aa00})
+let matColor = { color: 0xa94747}
+const material = new THREE.MeshBasicMaterial(matColor)
+const light = new THREE.PointLight().position.set(0, 100, 10);
+scene.add(light);
+// debug material color
+gui.addColor(matColor, 'color').onChange(() => 
+{
+  material.color.set(matColor.color)
+}).name("bar color")
+
 for (let i = 0; i < bufferLength; i++) {
   const mesh = new THREE.Mesh(cube, material)
   mesh.scale.set(cubeSize, minHeight, cubeSize)
-  mesh.position.x = (i + .5) * (mesh.scale.x + cubeSpacing)
+  mesh.position.x = xPos;
+  xPos += cubeSize + cubeSpacing;
+  cubeSize *= sizeDecreaseFactor;
   const mesh1 = mesh.clone();
   mesh1.position.x = -1 * mesh.position.x;
   scene.add(mesh);
@@ -77,7 +103,7 @@ function animate() {
   const elapsedTime = clock.getElapsedTime()
 
   // Update controls
-  controls.update()
+  // controls.update()
 
   analyser.getByteFrequencyData(dataArray);
   let barHeight;
@@ -140,33 +166,34 @@ window.addEventListener('resize', () =>
 /**
  * Fullscreen
  */
-window.addEventListener('dblclick', () =>
-{
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
 
-    if(!fullscreenElement)
-    {
-        if(canvas.requestFullscreen)
-        {
-            canvas.requestFullscreen()
-        }
-        else if(canvas.webkitRequestFullscreen)
-        {
-            canvas.webkitRequestFullscreen()
-        }
-    }
-    else
-    {
-        if(document.exitFullscreen)
-        {
-            document.exitFullscreen()
-        }
-        else if(document.webkitExitFullscreen)
-        {
-            document.webkitExitFullscreen()
-        }
-    }
-})
+// window.addEventListener('dblclick', () =>
+// {
+//     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+
+//     if(!fullscreenElement)
+//     {
+//         if(canvas.requestFullscreen)
+//         {
+//             canvas.requestFullscreen()
+//         }
+//         else if(canvas.webkitRequestFullscreen)
+//         {
+//             canvas.webkitRequestFullscreen()
+//         }
+//     }
+//     else
+//     {
+//         if(document.exitFullscreen)
+//         {
+//             document.exitFullscreen()
+//         }
+//         else if(document.webkitExitFullscreen)
+//         {
+//             document.webkitExitFullscreen()
+//         }
+//     }
+// })
 
 playButton.addEventListener("click", () => {
   if (audio.paused) {
