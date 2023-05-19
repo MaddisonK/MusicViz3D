@@ -5,9 +5,27 @@ import GUI from 'lil-gui';
 
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
-const audio = new Audio(song);
+let audio = new Audio(song);
+
+let source = audioCtx.createMediaElementSource(audio);
+source.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+analyser.fftSize = 128;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+
+function restartAudioAnalyzer() {
+  source.disconnect()
+  analyser.disconnect()
+  source = audioCtx.createMediaElementSource(audio);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+}
+
 const canvas = document.getElementById("canvas")
 const playButton = document.getElementById("play");
+const nextButton = document.getElementById("next");
 
 /**
  * Debug
@@ -53,14 +71,6 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
-const source = audioCtx.createMediaElementSource(audio);
-source.connect(analyser);
-analyser.connect(audioCtx.destination);
-
-analyser.fftSize = 128;
-const bufferLength = analyser.frequencyBinCount;
-const dataArray = new Uint8Array(bufferLength);
 
 // set up scene
 let cubeSize = .2;
@@ -108,11 +118,16 @@ function animate() {
   analyser.getByteFrequencyData(dataArray);
   let barHeight;
   let heightScale = .05;
+  let heightChange;
   for (let i = 0; i < bufferLength; i++) {
     barHeight =  Math.max(minHeight, dataArray[i] * heightScale);
     const mesh = cubesArr[i];
     const mesh1 = cubesArr[i + bufferLength];
-
+    
+    heightChange = barHeight - mesh.scale.y;
+    if (i == 0) {
+      console.log(mesh.scale.y);
+    }
     mesh.scale.y = barHeight;
     mesh1.scale.y = barHeight;
   }
@@ -204,4 +219,11 @@ playButton.addEventListener("click", () => {
       playButton.innerText = 'play'
       audio.pause();
   }
+});
+
+nextButton.addEventListener("click", () => {
+  playButton.click();
+  audio = new Audio("/sample1.mp3");
+  playButton.click();
+  restartAudioAnalyzer();
 });
