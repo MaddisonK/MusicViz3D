@@ -60,7 +60,7 @@ let cubesArr = new Array(bufferLength * 2);
 let xPos = (cubeParams.cubeSize + cubeSpacing) * .5;
 const cube = new THREE.BoxGeometry(1, 1, 1)
 let matColor = { color: 0x935353}
-const material = new THREE.MeshBasicMaterial(matColor)
+const material = new THREE.MeshNormalMaterial(matColor)
 
 // debug material color
 gui.addColor(matColor, 'color').onChange(() => 
@@ -74,22 +74,32 @@ const textureLoader = new THREE.TextureLoader();
 const particleTexture = textureLoader.load("./textures/particles/13.png");
 
 const particlesGeometry = new THREE.BufferGeometry()
+const particlesGeometry2 = new THREE.BufferGeometry()
 
 const particleParams = {
-  count: 10000,
-  speed: .01
+  count: 40000,
+  speed: .01,
+  spread: 20,
+  spreadY: 40
 }
-gui.add(particleParams, "speed").min(.001).max(10)
+gui.add(particleParams, "speed").min(.001).max(.05)
 
 const positions = new Float32Array(particleParams.count * 3)
 const colors = new Float32Array(particleParams.count * 3)
 
+const positions2 = new Float32Array(particleParams.count * 3)
+const colors2 = new Float32Array(particleParams.count * 3)
+
+let positionsFirst = positions;
+
+let particlesY = 0; // keep track of how far particles have moved
+
 setupParticles();
 // debug
-gui.add(cubeParams, "cubeSize").min(0).max(1).step(.01).onChange(() => {
-  deleteBars();
-  setupBars();
-})
+// gui.add(cubeParams, "cubeSize").min(0).max(1).step(.01).onChange(() => {
+//   deleteBars();
+//   setupBars();
+// })
 
 const clock = new THREE.Clock();
 animate();
@@ -119,13 +129,23 @@ function setupParticles() {
 
   for(let i = 0; i < particleParams.count * 3; i++)
   {
-      positions[i] = (Math.random() - 0.5) * 20
-      colors[i] = Math.random()
+    if (i % 3 == 1) { // control spread in y direction to avoid pop-in
+      positions[i] = (Math.random() - 0.5) * particleParams.spreadY
+      positions2[i] = (Math.random() - 0.5) * particleParams.spreadY
+    } else {
+      positions[i] = (Math.random() - 0.5) * particleParams.spread
+      positions2[i] = (Math.random() - 0.5) * particleParams.spread
+    }
+    
+    colors[i] = Math.random()
+    colors2[i] = Math.random()
   }
 
   particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
   
+  particlesGeometry2.setAttribute('position', new THREE.BufferAttribute(positions2, 3))
+  particlesGeometry2.setAttribute('color', new THREE.BufferAttribute(colors2, 3))
   // Material
   const particlesMaterial = new THREE.PointsMaterial()
 
@@ -145,17 +165,38 @@ function setupParticles() {
 
   // Points
   const particles = new THREE.Points(particlesGeometry, particlesMaterial)
-  scene.add(particles)
+  const particles2 = new THREE.Points(particlesGeometry2, particlesMaterial)
+  scene.add(particles, particles2)
+  offsetParticlePositions(positions2)
+}
+
+function offsetParticlePositions(_positions) {
+  console.log("offset");
+  for(let i = 1; i < particleParams.count * 3; i+=3) // start on y cord, increment by 3
+  {
+      _positions[i]-=particleParams.spreadY
+  }
+
+  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(_positions, 3))
+  particlesGeometry2.setAttribute('position', new THREE.BufferAttribute(_positions, 3))
 }
 
 function animateParticles() {
   for(let i = 1; i < particleParams.count * 3; i+=3)
   {
       positions[i]+=particleParams.speed
+      positions2[i]+=particleParams.speed
+  }
+  particlesY+=particleParams.speed
+  if (particlesY > particleParams.spreadY) {
+    offsetParticlePositions(positionsFirst);
+    offsetParticlePositions(positionsFirst);
+    positionsFirst = (positionsFirst == positions) ? positions2 : positions;
+    particlesY = 0;
   }
 
   particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-
+  particlesGeometry2.setAttribute('position', new THREE.BufferAttribute(positions2, 3))
 }
 
 function animate() {
