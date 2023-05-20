@@ -77,7 +77,7 @@ const particlesGeometry = new THREE.BufferGeometry()
 const particlesGeometry2 = new THREE.BufferGeometry()
 
 const particleParams = {
-  count: 40000,
+  count: 30000,
   speed: .01,
   spread: 20,
   spreadY: 40
@@ -86,12 +86,14 @@ gui.add(particleParams, "speed").min(.001).max(.05)
 
 const positions = new Float32Array(particleParams.count * 3)
 const colors = new Float32Array(particleParams.count * 3)
-
 const positions2 = new Float32Array(particleParams.count * 3)
 const colors2 = new Float32Array(particleParams.count * 3)
+let positionBuffer = new THREE.BufferAttribute(positions, 3);
+let colorBuffer = new THREE.BufferAttribute(colors, 3)
+let positionBuffer2 = new THREE.BufferAttribute(positions2, 3);
+let colorBuffer2 = new THREE.BufferAttribute(colors2, 3)
 
 let positionsFirst = positions;
-
 let particlesY = 0; // keep track of how far particles have moved
 
 setupParticles();
@@ -141,11 +143,11 @@ function setupParticles() {
     colors2[i] = Math.random()
   }
 
-  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  particlesGeometry.setAttribute('position', positionBuffer)
+  particlesGeometry.setAttribute('color', colorBuffer)
   
-  particlesGeometry2.setAttribute('position', new THREE.BufferAttribute(positions2, 3))
-  particlesGeometry2.setAttribute('color', new THREE.BufferAttribute(colors2, 3))
+  particlesGeometry2.setAttribute('position', positionBuffer2)
+  particlesGeometry2.setAttribute('color', colorBuffer2)
   // Material
   const particlesMaterial = new THREE.PointsMaterial()
 
@@ -194,9 +196,11 @@ function animateParticles() {
     positionsFirst = (positionsFirst == positions) ? positions2 : positions;
     particlesY = 0;
   }
+  positionBuffer.needsUpdate = true
+  positionBuffer2.needsUpdate = true
 
-  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  particlesGeometry2.setAttribute('position', new THREE.BufferAttribute(positions2, 3))
+  particlesGeometry.setAttribute('position', positionBuffer)
+  particlesGeometry2.setAttribute('position', positionBuffer2)
 }
 
 function animate() {
