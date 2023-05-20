@@ -27,7 +27,7 @@ const sizes = {
 }
 
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(80, sizes.width / sizes.height, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(90, sizes.width / sizes.height, 0.1, 100)
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
 scene.add(camera)
@@ -77,7 +77,7 @@ const particlesGeometry = new THREE.BufferGeometry()
 const particlesGeometry2 = new THREE.BufferGeometry()
 
 const particleParams = {
-  count: 30000,
+  count: 50000,
   speed: .01,
   spread: 20,
   spreadY: 40
