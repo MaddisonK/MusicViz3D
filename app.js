@@ -19,6 +19,8 @@ const dataArray = new Uint8Array(bufferLength);
 const canvas = document.getElementById("canvas")
 const playButton = document.getElementById("play");
 const nextButton = document.getElementById("next");
+const backButton = document.getElementById("back");
+const songIndexE = document.getElementById("songIndex")
 
 const gui = new GUI();
 
@@ -77,9 +79,9 @@ const particlesGeometry = new THREE.BufferGeometry()
 const particlesGeometry2 = new THREE.BufferGeometry()
 
 const particleParams = {
-  count: 50000,
-  speed: .01,
-  spread: 20,
+  count: 40000,
+  speed: .005,
+  spread: 15,
   spreadY: 40
 }
 gui.add(particleParams, "speed").min(.001).max(.05)
@@ -289,10 +291,29 @@ playButton.addEventListener("click", () => {
 
 nextButton.addEventListener("click", () => {
   playButton.click();
+  audio.setAttribute('src', './sample' + (songIndex + 1) +  '.mp3') 
   songIndex++;
-  audio.src = './sample' + songIndex +  '.mp3'
   restartAudioAnalyzer();
   playButton.click();
+  songIndexE.innerText = songIndex;
+});
+
+backButton.addEventListener("click", () => {
+  if (songIndex == 0) {return};
+  playButton.click();
+  songIndex--;
+  audio.setAttribute('src', './sample' + (songIndex) +  '.mp3')
+  restartAudioAnalyzer();
+  playButton.click();
+  songIndexE.innerText = songIndex;
+});
+
+audio.addEventListener("error", () => {
+  songIndex = 0;
+  audio.setAttribute('src', './sample' + (songIndex) +  '.mp3')
+  restartAudioAnalyzer();
+  playButton.click();
+  songIndexE.innerText = songIndex;
 });
 
 /**
