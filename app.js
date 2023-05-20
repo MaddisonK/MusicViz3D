@@ -5,7 +5,7 @@ import GUI from 'lil-gui';
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
 const audio = document.getElementById("audio");
-audio.src = "./sample0.mp3";
+audio.src = "./sample0.mp3"; // initial sample
 
 let source = audioCtx.createMediaElementSource(audio);
 source.connect(analyser);
@@ -59,7 +59,7 @@ let minHeight = .1;
 let cubesArr = new Array(bufferLength * 2);
 let xPos = (cubeParams.cubeSize + cubeSpacing) * .5;
 const cube = new THREE.BoxGeometry(1, 1, 1)
-let matColor = { color: 0xa94747}
+let matColor = { color: 0x935353}
 const material = new THREE.MeshBasicMaterial(matColor)
 
 // debug material color
@@ -69,6 +69,21 @@ gui.addColor(matColor, 'color').onChange(() =>
 }).name("bar color")
 
 setupBars();
+
+const textureLoader = new THREE.TextureLoader();
+const particleTexture = textureLoader.load("./textures/particles/13.png");
+
+const particlesGeometry = new THREE.BufferGeometry()
+
+const particleParams = {
+  count: 10000,
+  speed: .01
+}
+gui.add(particleParams, "speed").min(.001).max(10)
+
+const positions = new Float32Array(particleParams.count * 3)
+const colors = new Float32Array(particleParams.count * 3)
+
 setupParticles();
 // debug
 gui.add(cubeParams, "cubeSize").min(0).max(1).step(.01).onChange(() => {
@@ -99,19 +114,48 @@ function setupBars()
 }
 
 function setupParticles() {
-  // Geometry
-  const particlesGeometry = new THREE.BufferGeometry()
-  const count = 500
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.load("./textures/particles/13.png")
 
-  const positions = new Float32Array(count * 3) // Multiply by 3 because each position is composed of 3 values (x, y, z)
-
-  for(let i = 0; i < count * 3; i++) // Multiply by 3 for same reason
+  for(let i = 0; i < particleParams.count * 3; i++)
   {
-      positions[i] = (Math.random() - 0.5) * 10 // Math.random() - 0.5 to have a random value between -0.5 and +0.5
+      positions[i] = (Math.random() - 0.5) * 20
+      colors[i] = Math.random()
   }
 
-  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)) // Create the Three.js BufferAttribute and specify that each information is composed of 3 values
+  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
   
+  // Material
+  const particlesMaterial = new THREE.PointsMaterial()
+
+  particlesMaterial.size = 0.1
+  particlesMaterial.sizeAttenuation = true
+
+  particlesMaterial.color = new THREE.Color('#ff88cc')
+
+  particlesMaterial.transparent = true
+  particlesMaterial.alphaMap = particleTexture
+  // particlesMaterial.alphaTest = 0.01
+  // particlesMaterial.depthTest = false
+  particlesMaterial.depthWrite = false
+  particlesMaterial.blending = THREE.AdditiveBlending
+
+  particlesMaterial.vertexColors = true
+
+  // Points
+  const particles = new THREE.Points(particlesGeometry, particlesMaterial)
+  scene.add(particles)
+}
+
+function animateParticles() {
+  for(let i = 1; i < particleParams.count * 3; i+=3)
+  {
+      positions[i]+=particleParams.speed
+  }
+
+  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+
 }
 
 function animate() {
@@ -137,6 +181,8 @@ function animate() {
     mesh.scale.y = barHeight;
     mesh1.scale.y = barHeight;
   }
+
+  animateParticles();
 
   // Render
   renderer.render(scene, camera)
