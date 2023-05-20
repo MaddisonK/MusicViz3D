@@ -5,7 +5,7 @@ import GUI from 'lil-gui';
 const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
 const audio = document.getElementById("audio");
-audio.src = "./audio/sample0.mp3";
+audio.src = "./sample0.mp3";
 
 let source = audioCtx.createMediaElementSource(audio);
 source.connect(analyser);
@@ -198,8 +198,9 @@ playButton.addEventListener("click", () => {
 
 nextButton.addEventListener("click", () => {
   playButton.click();
-  audio.src = './audio/sample1.mp3'
+  audio.src = './sample1.mp3'
   restartAudioAnalyzer();
+  playButton.click();
 });
 
 /**
