@@ -6,6 +6,7 @@ const audioCtx = new AudioContext();
 const analyser = audioCtx.createAnalyser();
 const audio = document.getElementById("audio");
 audio.src = "./sample0.mp3"; // initial sample
+let songIndex = 0;
 
 let source = audioCtx.createMediaElementSource(audio);
 source.connect(analyser);
@@ -46,18 +47,17 @@ gui.add(camera.rotation, "x").max(0).min(Math.PI / -2).hide()
 
 // set up scene
 const cubeParams = {
-  cubeSize: .2,
+  cubeSize: .1,
   logBase: .2,
-  cubeSpacing: .1,
+  cubeSpacing: .05,
   minHeight: .1
 }
 
 let logBase = .2;
 const sizeDecreaseFactor = .95; // change to using log base
-let cubeSpacing = .1;
 let minHeight = .1;
 let cubesArr = new Array(bufferLength * 2);
-let xPos = (cubeParams.cubeSize + cubeSpacing) * .5;
+let xPos = (cubeParams.cubeSize + cubeParams.cubeSpacing) * .5;
 const cube = new THREE.BoxGeometry(1, 1, 1)
 let matColor = { color: 0x935353}
 const material = new THREE.MeshNormalMaterial(matColor)
@@ -114,7 +114,7 @@ function setupBars()
     mesh.scale.set(cubeParams.cubeSize, minHeight, cubeParams.cubeSize)
     mesh.position.x = xPos;
     // cubeSize = Math.log(i) / Math.log(logBase)
-    xPos += cubeParams.cubeSize + cubeSpacing;
+    xPos += cubeParams.cubeSize + cubeParams.cubeSpacing;
     // cubeParams.cubeSize*=sizeDecreaseFactor;
     const mesh1 = mesh.clone();
     mesh1.position.x = -1 * mesh.position.x;
@@ -289,7 +289,8 @@ playButton.addEventListener("click", () => {
 
 nextButton.addEventListener("click", () => {
   playButton.click();
-  audio.src = './sample1.mp3'
+  songIndex++;
+  audio.src = './sample' + songIndex +  '.mp3'
   restartAudioAnalyzer();
   playButton.click();
 });
