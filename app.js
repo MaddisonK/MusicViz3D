@@ -30,13 +30,18 @@ const sizes = {
 }
 
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(90, sizes.width / sizes.height, 0.1, 100)
-const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
+const camera = new THREE.PerspectiveCamera(92, sizes.width / sizes.height, 0.1, 100)
+// const controls = new OrbitControls(camera, canvas)
+// controls.enableDamping = true
 scene.add(camera)
 camera.position.z = 5
-camera.position.y = 5
-camera.rotation.set(-Math.PI * .15, 0, 0)
+camera.position.y = 4.5
+camera.rotation.set(-Math.PI * .135, 0, 0)
+const light = new THREE.PointLight(new THREE.Color(0xffffff))
+
+light.position.set(0, 10, 5);
+
+scene.add(light)
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas
 })
@@ -44,8 +49,8 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 // debug camera height
-gui.add(camera.position, "y").min(-20).max(20).step(1).name("camera height")
-gui.add(camera.rotation, "x").max(0).min(Math.PI / -2).hide()
+gui.add(camera.position, "y").min(-5).max(10).step(.1).name("Cam Height").hide()
+gui.add(camera.rotation, "x").max(0).min(Math.PI / -2).name("Cam Angle").hide()
 
 // set up scene
 const cubeParams = {
@@ -62,13 +67,21 @@ let cubesArr = new Array(bufferLength * 2);
 let xPos = (cubeParams.cubeSize + cubeParams.cubeSpacing) * .5;
 const cube = new THREE.BoxGeometry(1, 1, 1)
 let matColor = { color: 0x935353}
-const material = new THREE.MeshNormalMaterial(matColor)
+let isColored = false;
+const material = new THREE.MeshNormalMaterial();
+const colorMaterial = new THREE.MeshStandardMaterial(matColor)
 
 // debug material color
 gui.addColor(matColor, 'color').onChange(() => 
 {
-  material.color.set(matColor.color)
-}).name("bar color")
+  if (isColored == false) { // first time changing material to colored
+    cubesArr.forEach(element => {
+      element.material = colorMaterial;
+    });
+  } 
+  isColored = true;
+  colorMaterial.color.set(matColor.color)
+}).name("Color")
 
 setupBars();
 
@@ -81,10 +94,11 @@ const particlesGeometry2 = new THREE.BufferGeometry()
 const particleParams = {
   count: 40000,
   speed: .005,
-  spread: 15,
-  spreadY: 40
+  spreadZ: 10,
+  spreadY: 40,
+  spreadX: 30
 }
-gui.add(particleParams, "speed").min(.001).max(.05)
+gui.add(particleParams, "speed").min(.001).max(.05).name("Speed")
 
 const positions = new Float32Array(particleParams.count * 3)
 const colors = new Float32Array(particleParams.count * 3)
@@ -133,14 +147,21 @@ function setupParticles() {
 
   for(let i = 0; i < particleParams.count * 3; i++)
   {
-    if (i % 3 == 1) { // control spread in y direction to avoid pop-in
-      positions[i] = (Math.random() - 0.5) * particleParams.spreadY
-      positions2[i] = (Math.random() - 0.5) * particleParams.spreadY
-    } else {
-      positions[i] = (Math.random() - 0.5) * particleParams.spread
-      positions2[i] = (Math.random() - 0.5) * particleParams.spread
+    switch (i % 3) {
+      case 0:
+        positions[i] = (Math.random() - 0.5) * particleParams.spreadX;
+        positions2[i] = (Math.random() - 0.5) * particleParams.spreadX;
+        break;
+      case 1:
+        positions[i] = (Math.random() - 0.5) * particleParams.spreadY;
+        positions2[i] = (Math.random() - 0.5) * particleParams.spreadY;
+        break;
+      case 2:
+        positions[i] = (Math.random() - 0.5) * particleParams.spreadZ;
+        positions2[i] = (Math.random() - 0.5) * particleParams.spreadZ;
+        break;
     }
-    
+
     colors[i] = Math.random()
     colors2[i] = Math.random()
   }
@@ -290,7 +311,6 @@ playButton.addEventListener("click", () => {
 });
 
 nextButton.addEventListener("click", () => {
-  playButton.click();
   audio.setAttribute('src', './sample' + (songIndex + 1) +  '.mp3') 
   songIndex++;
   restartAudioAnalyzer();
@@ -299,16 +319,33 @@ nextButton.addEventListener("click", () => {
 });
 
 backButton.addEventListener("click", () => {
-  if (songIndex == 0) {return};
-  playButton.click();
-  songIndex--;
+  if (songIndex == 0) 
+  {
+    return;
+    nextButton.click();
+    let maxIndex = 0;
+    while (songIndex != 0) {
+      maxIndex = songIndex;
+      nextButton.click(); // when err, songIndex is set to 0
+      console.log(songIndex);
+      if (songIndex > 10) {
+        console.log("maxIndex: ", maxIndex)
+        break;
+      }
+    }
+    songIndex = maxIndex;
+  } 
+  else 
+  {
+    songIndex--;
+  }
   audio.setAttribute('src', './sample' + (songIndex) +  '.mp3')
   restartAudioAnalyzer();
   playButton.click();
   songIndexE.innerText = songIndex;
 });
 
-audio.addEventListener("error", () => {
+audio.addEventListener("error", (err) => {
   songIndex = 0;
   audio.setAttribute('src', './sample' + (songIndex) +  '.mp3')
   restartAudioAnalyzer();
@@ -319,31 +356,42 @@ audio.addEventListener("error", () => {
 /**
  * Fullscreen
  */
-
-canvas.addEventListener('dblclick', () =>
+const handleKeyPress = (event) =>
 {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+  if (event.key == "f") {
+    toggleFullscreen();
+  }
+  if (event.key == " " || event.key == "Spacebar") {
+    playButton.click();
+  }
+};
 
-    if(!fullscreenElement)
-    {
-        if(canvas.requestFullscreen)
-        {
-            canvas.requestFullscreen()
-        }
-        else if(canvas.webkitRequestFullscreen)
-        {
-            canvas.webkitRequestFullscreen()
-        }
-    }
-    else
-    {
-        if(document.exitFullscreen)
-        {
-            document.exitFullscreen()
-        }
-        else if(document.webkitExitFullscreen)
-        {
-            document.webkitExitFullscreen()
-        }
-    }
-})
+function toggleFullscreen() {
+  const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+
+  if(!fullscreenElement)
+  {
+      if(canvas.requestFullscreen)
+      {
+          canvas.requestFullscreen()
+      }
+      else if(canvas.webkitRequestFullscreen)
+      {
+          canvas.webkitRequestFullscreen()
+      }
+  }
+  else
+  {
+      if(document.exitFullscreen)
+      {
+          document.exitFullscreen()
+      }
+      else if(document.webkitExitFullscreen)
+      {
+          document.webkitExitFullscreen()
+      }
+  }
+}
+
+document.addEventListener('keypress', handleKeyPress);
+
